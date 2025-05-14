@@ -16,27 +16,37 @@ import {
   setGenericPassword,
 } from "react-native-keychain";
 
-interface BaseKeychainAccessOptions {
-  service?: string;
-  accessControl?: ACCESS_CONTROL;
-  accessible?: ACCESSIBLE;
-  authenticationType?: AUTHENTICATION_TYPE;
-  securityLevel?: SECURITY_LEVEL;
-}
-
-interface KeychainAccessOptions extends BaseKeychainAccessOptions {
+interface RnkOptions {
   service: string;
+  accessible: ACCESSIBLE;
+  accessControl: ACCESS_CONTROL;
+  authenticationType: AUTHENTICATION_TYPE;
+  securityLevel: SECURITY_LEVEL;
 }
 
-const BASE_SECURE_WITH_AUTH_RNK_ACCESS_OPTIONS: BaseKeychainAccessOptions = {
-  accessControl: ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE,
+const BaseOptions = {
   accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
   authenticationType: AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS,
   securityLevel: SECURITY_LEVEL.SECURE_HARDWARE,
 };
 
-function getRnkeychainAccessOptions(key: string): KeychainAccessOptions {
-  return { ...BASE_SECURE_WITH_AUTH_RNK_ACCESS_OPTIONS, service: key };
+const BaseOptionsBiometrics = {
+  ...BaseOptions,
+  accessControl: ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE,
+};
+
+const BaseOptionsDevicePasscode = {
+  ...BaseOptions,
+  accessControl: ACCESS_CONTROL.DEVICE_PASSCODE,
+};
+
+function getRnkeychainAccessOptions(key: string): RnkOptions {
+  // Get current device capabilities
+
+  return {
+    service: key,
+    ...BaseOptionsBiometrics,
+  };
 }
 
 function setKey(key: string, value: string) {
