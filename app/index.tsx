@@ -1,3 +1,7 @@
+import {
+  getEnrolledLevelAsync,
+  SecurityLevel,
+} from "expo-local-authentication";
 import { useState } from "react";
 import {
   Alert,
@@ -40,21 +44,28 @@ const BaseOptionsDevicePasscode = {
   accessControl: ACCESS_CONTROL.DEVICE_PASSCODE,
 };
 
-function getRnkeychainAccessOptions(key: string): RnkOptions {
-  // Get current device capabilities
+async function getRnkeychainAccessOptions(key: string): Promise<RnkOptions> {
+  const enrollmentLevel = await getEnrolledLevelAsync();
 
-  return {
-    service: key,
-    ...BaseOptionsBiometrics,
-  };
+  if (enrollmentLevel === SecurityLevel.NONE) {
+    throw new Error("Device security required");
+  }
+
+  if (enrollmentLevel === SecurityLevel.BIOMETRIC_STRONG) {
+    return { service: key, ...BaseOptionsBiometrics };
+  }
+
+  return { service: key, ...BaseOptionsDevicePasscode };
 }
 
-function setKey(key: string, value: string) {
-  return setGenericPassword(key, value, getRnkeychainAccessOptions(key));
+async function getKey(key: string) {
+  const options = await getRnkeychainAccessOptions(key);
+  return getGenericPassword(options);
 }
 
-function getKey(key: string) {
-  return getGenericPassword(getRnkeychainAccessOptions(key));
+async function setKey(key: string, value: string) {
+  const options = await getRnkeychainAccessOptions(key);
+  return setGenericPassword(key, value, options);
 }
 
 export default function Index() {
